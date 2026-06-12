@@ -1,0 +1,188 @@
+package com.rm.service;
+
+import com.rm.dto.ProductRequest;
+import com.rm.entity.*;
+import com.rm.repository.InventoryTransactionRepository;
+import com.rm.repository.ProductRepository;
+import com.rm.repository.PurchaseOrderRepository;
+import com.rm.repository.SupplierRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    private final InventoryTransactionRepository
+            inventoryTransactionRepository;
+
+    private final SupplierRepository supplierRepository;
+
+    private final PurchaseOrderRepository purchaseOrderRepository;
+    // CREATE PRODUCT
+    public Product createProduct(ProductRequest request) {
+
+        if(productRepository.findByBarcode(
+                request.getBarcode()
+        ).isPresent()) {
+
+            throw new RuntimeException(
+                    "Barcode already exists"
+            );
+        }
+
+        Supplier supplier =
+                supplierRepository.findById(
+                                request.getSupplierId()
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Supplier not found"
+                                ));
+        Product product = Product.builder()
+                .name(request.getName())
+                .barcode(request.getBarcode())
+                .category(request.getCategory())
+                .brand(request.getBrand())
+                .price(request.getPrice())
+                .stockQuantity(request.getStockQuantity())
+                .active(true)
+                .createdAt(LocalDateTime.now())
+                .supplier(supplier)
+                .build();
+
+        return productRepository.save(product);
+    }
+
+    // GET ALL PRODUCTS
+    public List<Product> getAllProducts() {
+
+        return productRepository.findAll();
+    }
+
+    // GET PRODUCT BY BARCODE
+    public Product getByBarcode(String barcode) {
+
+        return productRepository.findByBarcode(barcode)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Product not found"
+                        ));
+    }
+
+    @Transactional
+    public Product restockProduct(
+            Long productId,
+            Integer quantity
+    ) {
+
+        Product product =
+                productRepository.findById(productId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Product not found"
+                                ));
+
+        product.setStockQuantity(
+                product.getStockQuantity() + quantity
+        );
+
+        InventoryTransaction transaction =
+                InventoryTransaction.builder()
+                        .product(product)
+                        .quantity(quantity)
+                        .transactionType(
+                                InventoryTransactionType.RESTOCK
+                        )
+                        .referenceNumber(
+                                "RESTOCK-" + System.currentTimeMillis()
+                        )
+                        // .createdBy(authentication.getName())
+                        .createdAt(LocalDateTime.now())
+                        .build();
+
+        inventoryTransactionRepository.save(
+                transaction
+        );
+
+        return productRepository.save(product);
+    }
+
+    @Transactional
+    public Product restockByBarcode(
+            String barcode,
+            Integer quantity
+    ) {
+
+        Product product =
+                productRepository.findByBarcode(barcode)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Product not found"
+                                ));
+
+        product.setStockQuantity(
+                product.getStockQuantity() + quantity
+        );
+
+        InventoryTransaction transaction =
+                InventoryTransaction.builder()
+                        .product(product)
+                        .quantity(quantity)
+                        .transactionType(
+                                InventoryTransactionType.RESTOCK
+                        )
+                        .referenceNumber(
+                                "RESTOCK-" + System.currentTimeMillis()
+                        )
+                       // .createdBy(authentication.getName())
+                        .createdAt(LocalDateTime.now())
+                        .build();
+
+        inventoryTransactionRepository.save(
+                transaction
+        );
+
+        return productRepository.save(product);
+    }
+
+    public List<InventoryTransaction>
+    getProductHistory(Long productId) {
+
+        return inventoryTransactionRepository
+                .findByProductId(productId);
+    }
+
+    @Transactional
+    public Product updatePrice(
+            Long productId,
+            BigDecimal newPrice
+    ) {
+
+        Product product =
+                productRepository.findById(productId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Product not found"
+                                ));
+
+        if(newPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException(
+                    "Price must be greater than zero"
+            );
+        }
+
+        product.setPrice(newPrice);
+
+        return productRepository.save(product);
+    }
+
+
+}
