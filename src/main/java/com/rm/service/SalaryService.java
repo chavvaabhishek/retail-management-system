@@ -5,11 +5,13 @@ import com.rm.entity.AttendanceStatus;
 import com.rm.entity.Employee;
 import com.rm.entity.PaymentStatus;
 import com.rm.entity.SalaryPayment;
+import com.rm.event.SalaryPaidEvent;
 import com.rm.repository.AttendanceRepository;
 import com.rm.repository.EmployeeRepository;
 import com.rm.repository.SalaryPaymentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +29,7 @@ public class SalaryService {
     private final EmployeeRepository employeeRepository;
     private final SalaryPaymentRepository salaryPaymentRepository;
     private final AttendanceRepository attendanceRepository;
+    private final ApplicationEventPublisher eventPublisher;
     @Transactional
     public SalaryPayment paySalary(
             Long employeeId
@@ -74,7 +77,12 @@ public class SalaryService {
                         .status(PaymentStatus.PAID)
                         .build();
 
-        return salaryPaymentRepository.save(payment);
+         SalaryPayment salaryPayment=salaryPaymentRepository.save(payment);
+
+        eventPublisher.publishEvent(
+                new SalaryPaidEvent(salaryPayment)
+        );
+        return salaryPayment;
     }
 
     @Transactional
