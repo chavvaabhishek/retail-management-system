@@ -6,6 +6,7 @@ import com.rm.dto.CreateBillRequest;
 import com.rm.dto.InvoiceResponse;
 import com.rm.dto.BillResponse;
 import com.rm.entity.*;
+import com.rm.event.BillCreatedEvent;
 import com.rm.exception.BillNotFoundException;
 import com.rm.repository.BillRepository;
 import com.rm.repository.InventoryTransactionRepository;
@@ -205,6 +206,10 @@ public class BillingService {
         }
 
         Bill savedBill = billRepository.save(bill);
+
+        eventPublisher.publishEvent(
+                new BillCreatedEvent(savedBill)
+        );
 
         List<BillItemResponse> itemResponses =
                 savedBill.getItems()
