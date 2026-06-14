@@ -43,6 +43,22 @@ public interface BillRepository
     );
 
     @Query("""
+       SELECT COALESCE(SUM(b.totalAmount),0)
+       FROM Bill b
+       WHERE b.createdAt BETWEEN :start AND :end
+       """)
+    BigDecimal getTodayTotalRevenue(  LocalDateTime start,
+                                      LocalDateTime end);
+
+    @Query("""
+       SELECT COUNT(b)
+       FROM Bill b
+       WHERE b.createdAt BETWEEN :start AND :end
+       """)
+    Long getTodayBills(  LocalDateTime start,
+                         LocalDateTime end);
+
+    @Query("""
             SELECT COUNT(b)
             FROM Bill b
             WHERE b.createdAt BETWEEN :start AND :end

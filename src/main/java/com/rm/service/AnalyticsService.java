@@ -1,5 +1,6 @@
 package com.rm.service;
 
+import com.rm.dto.DashboardResponse;
 import com.rm.dto.SalesSummaryResponse;
 import com.rm.dto.TopProductResponse;
 import com.rm.entity.Product;
@@ -7,6 +8,7 @@ import com.rm.repository.BillItemRepository;
 import com.rm.repository.BillRepository;
 import com.rm.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -56,6 +58,32 @@ public class AnalyticsService {
                 .findByStockQuantityLessThan(10);
     }
 
+
+    @Cacheable(
+            value = "dashboard"
+    )
+    public DashboardResponse getDashboard() {
+
+        System.out.println(
+                "Fetching Dashboard From DB..."
+        );
+
+        return DashboardResponse.builder()
+                .todayRevenue(
+                        billRepository.getTodayTotalRevenue(start,end)
+                )
+                .todayBills(
+                        billRepository.getTodayBills(start,end)
+                )
+                .totalProducts(
+                        productRepository.count()
+                )
+                .lowStockProducts(
+                        productRepository
+                                .countByStockQuantityLessThan(10)
+                )
+                .build();
+    }
 
 
 }

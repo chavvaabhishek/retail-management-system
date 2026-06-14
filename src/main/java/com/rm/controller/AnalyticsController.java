@@ -1,5 +1,6 @@
 package com.rm.controller;
 
+import com.rm.dto.DashboardResponse;
 import com.rm.dto.SalesSummaryResponse;
 import com.rm.dto.TopProductResponse;
 import com.rm.entity.Product;
@@ -39,4 +40,10 @@ public class AnalyticsController {
                 .topProducts();
     }
 
+
+    @GetMapping("/dashboard")
+    public DashboardResponse dashboard() {
+
+        return analyticsService.getDashboard();
+    }
 }

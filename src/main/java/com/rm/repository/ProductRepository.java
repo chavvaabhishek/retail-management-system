@@ -13,4 +13,7 @@ public interface ProductRepository
 
     List<Product>
     findByStockQuantityLessThan(Integer stock);
+
+    Long countBy();
+    Long countByStockQuantityLessThan(Integer stockQuantity);
 }

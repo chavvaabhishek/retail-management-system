@@ -8,6 +8,8 @@ import com.rm.repository.PurchaseOrderRepository;
 import com.rm.repository.SupplierRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -68,15 +70,27 @@ public class ProductService {
     }
 
     // GET PRODUCT BY BARCODE
-    public Product getByBarcode(String barcode) {
 
-        return productRepository.findByBarcode(barcode)
-                .orElseThrow(() ->
-                        new RuntimeException(
+    @Cacheable(
+            value = "products",
+            key = "#barcode"
+    )
+    public Product getByBarcode(
+            String barcode
+    ) {
+
+        System.out.println(
+                "Fetching from DB..."
+        );
+
+        return productRepository
+                .findByBarcode(barcode)
+                .orElseThrow(
+                        () -> new RuntimeException(
                                 "Product not found"
-                        ));
+                        )
+                );
     }
-
     @Transactional
     public Product restockProduct(
             Long productId,
@@ -160,6 +174,10 @@ public class ProductService {
                 .findByProductId(productId);
     }
 
+    @CachePut(
+            value = "products",
+            key = "#result.barcode"
+    )
     @Transactional
     public Product updatePrice(
             Long productId,
