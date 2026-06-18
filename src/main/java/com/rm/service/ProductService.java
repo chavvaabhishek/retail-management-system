@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,6 +29,8 @@ public class ProductService {
     private final SupplierRepository supplierRepository;
 
     private final PurchaseOrderRepository purchaseOrderRepository;
+
+    private final FileStorageService fileStorageService;
     // CREATE PRODUCT
     public Product createProduct(ProductRequest request) {
 
@@ -202,5 +205,27 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+
+    @Transactional
+    public Product uploadImage(
+            Long productId,
+            MultipartFile file
+    ) {
+
+        Product product =
+                productRepository.findById(productId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Product not found"
+                                ));
+
+        String fileName =
+                fileStorageService
+                        .uploadProductImage(file);
+
+        product.setImageUrl(fileName);
+
+        return productRepository.save(product);
+    }
 
 }

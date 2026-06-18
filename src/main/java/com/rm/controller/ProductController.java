@@ -8,6 +8,7 @@ import com.rm.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -81,5 +82,21 @@ public class ProductController {
                 id,
                 request.getPrice()
         );
+    }
+
+    @PostMapping(
+            "/{productId}/image"
+    )
+    public Product uploadImage(
+            @PathVariable Long productId,
+            @RequestParam("file")
+            MultipartFile file
+    ) {
+
+        return productService
+                .uploadImage(
+                        productId,
+                        file
+                );
     }
 }
