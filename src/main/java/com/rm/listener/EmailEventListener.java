@@ -31,11 +31,11 @@ public class EmailEventListener {
 //            return;
 //        }
 
-        emailService.sendEmail(
-                bill.getCustomer().getEmail(),
-                "Invoice Generated",
-                "Thank you for shopping.\nInvoice Number: "
-                        + bill.getInvoiceNumber()
-        );
+//        emailService.sendEmail(
+//                bill.getCustomer().getEmail(),
+//                "Invoice Generated",
+//                "Thank you for shopping.\nInvoice Number: "
+//                        + bill.getInvoiceNumber()
+//        );
     }
 }

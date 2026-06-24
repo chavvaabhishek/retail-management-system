@@ -36,6 +36,7 @@ public class Bill {
     @OneToMany(
             mappedBy = "bill",
             cascade = CascadeType.ALL
+            
     )
     private List<BillItem> items;
 
@@ -50,4 +51,10 @@ public class Bill {
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+
+    private String razorpayOrderId;
+
+    private String razorpayPaymentId;
+
+    private String razorpaySignature;
 }

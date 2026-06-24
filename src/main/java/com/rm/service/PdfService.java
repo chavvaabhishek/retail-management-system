@@ -20,12 +20,18 @@ public class PdfService {
             Long billId
     ) {
 
+//        Bill bill =
+//                billRepository.findById(billId)
+//                        .orElseThrow(() ->
+//                                new RuntimeException(
+//                                        "Bill not found"
+//                                ));
+
         Bill bill =
-                billRepository.findById(billId)
+                billRepository.findByIdWithItems(billId)
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Bill not found"
-                                ));
+                                new RuntimeException("Bill not found")
+                        );
 
         try {
 

@@ -1,16 +1,23 @@
 package com.rm.service;
 
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.rm.dto.PaymentOrderResponse;
 import com.rm.dto.PaymentRequest;
 import com.rm.dto.PaymentResponse;
+import com.rm.dto.VerifyPaymentRequest;
 import com.rm.entity.Bill;
 import com.rm.entity.Payment;
 import com.rm.entity.PaymentStatus;
 import com.rm.entity.Product;
+import com.rm.event.PaymentSuccessfulEvent;
 import com.rm.repository.BillRepository;
 import com.rm.repository.PaymentRepository;
 import com.rm.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +30,12 @@ public class PaymentService {
     private final BillRepository billRepository;
     private final PaymentRepository paymentRepository;
     private final ProductRepository productRepository;
+
+
+    private final RazorpayClient razorpayClient;
+
+    private final ApplicationEventPublisher eventPublisher;
+
 
     public PaymentResponse makePayment(
             PaymentRequest request
@@ -78,6 +91,101 @@ public class PaymentService {
                 )
                 .build();
     }
+
+    public PaymentOrderResponse createOrder(
+            Long billId
+    ) throws Exception {
+
+        Bill bill =
+                billRepository.findById(billId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Bill not found"
+                                ));
+
+        JSONObject options =
+                new JSONObject();
+
+        options.put(
+                "amount",
+                bill.getTotalAmount()
+                        .multiply(
+                                java.math.BigDecimal.valueOf(100)
+                        )
+                        .intValue()
+        );
+
+        options.put(
+                "currency",
+                "INR"
+        );
+
+        options.put(
+                "receipt",
+                "bill_" + bill.getId()
+        );
+
+        Order order =
+                razorpayClient.orders.create(options);
+
+        String orderId =
+                order.get("id").toString();
+
+        bill.setRazorpayOrderId(orderId);
+
+        bill.setPaymentStatus(
+                PaymentStatus.PENDING
+        );
+
+        billRepository.save(bill);
+
+        return PaymentOrderResponse
+                .builder()
+                .orderId(
+                        order.get("id")
+                                .toString()
+                )
+                .amount(
+                        order.get("amount")
+                )
+                .currency(
+                        order.get("currency")
+                )
+                .build();
+    }
+
+    public void verifyPayment(
+            VerifyPaymentRequest request
+    ) {
+
+        Bill bill =
+                billRepository.findById(
+                        request.getBillId()
+                ).orElseThrow(
+                        () -> new RuntimeException(
+                                "Bill not found"
+                        )
+                );
+
+        bill.setPaymentStatus(
+                PaymentStatus.PAID
+        );
+
+        bill.setRazorpayPaymentId(
+                request.getRazorpayPaymentId()
+        );
+
+        bill.setRazorpaySignature(
+                request.getRazorpaySignature()
+        );
+
+        billRepository.save(bill);
+
+        eventPublisher.publishEvent(
+                new PaymentSuccessfulEvent(bill)
+        );
+    }
+
 
 
 }
