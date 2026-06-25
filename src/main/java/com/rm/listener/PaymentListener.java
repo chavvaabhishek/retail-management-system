@@ -37,14 +37,12 @@ public class PaymentListener {
                         bill.getId()
                 );
 
-        emailService.sendEmailWithAttachment(
-                "yourmail@gmail.com",
+                emailService.sendEmailWithAttachment(
+                bill.getCustomer().getEmail(),
                 "Invoice Generated",
                 "Thank you for shopping",
                 pdf,
-                "invoice-" +
-                        bill.getId() +
-                        ".pdf"
+                "invoice.pdf"
         );
     }
 }

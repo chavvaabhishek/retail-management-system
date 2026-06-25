@@ -32,12 +32,12 @@ public class InvoiceEmailListener {
                         bill.getId()
                 );
 
-        emailService.sendEmailWithAttachment(
-                bill.getCustomer().getEmail(),
-                "Invoice Generated",
-                "Thank you for shopping",
-                pdf,
-                "invoice.pdf"
-        );
+//        emailService.sendEmailWithAttachment(
+//                bill.getCustomer().getEmail(),
+//                "Invoice Generated",
+//                "Thank you for shopping",
+//                pdf,
+//                "invoice.pdf"
+//        );
     }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,4 +37,5 @@ public class User {
     @Column(nullable = false)
     private Integer loyaltyPoints = 0;
     private Boolean firstLogin = true;
+    private LocalDate dateOfBirth;
 }

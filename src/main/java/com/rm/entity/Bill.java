@@ -57,4 +57,8 @@ public class Bill {
     private String razorpayPaymentId;
 
     private String razorpaySignature;
+
+    @ManyToOne
+    @JoinColumn(name = "coupon_id")
+    private Coupon coupon;
 }

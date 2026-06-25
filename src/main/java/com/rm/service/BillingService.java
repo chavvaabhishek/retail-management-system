@@ -8,10 +8,7 @@ import com.rm.dto.BillResponse;
 import com.rm.entity.*;
 import com.rm.event.BillCreatedEvent;
 import com.rm.exception.BillNotFoundException;
-import com.rm.repository.BillRepository;
-import com.rm.repository.InventoryTransactionRepository;
-import com.rm.repository.ProductRepository;
-import com.rm.repository.UserRepository;
+import com.rm.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +35,8 @@ public class BillingService {
             inventoryTransactionRepository;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final CouponRepository couponRepository;
 
     public BillResponse createBill(
             CreateBillRequest request,
@@ -166,6 +166,55 @@ public class BillingService {
         total =
                 total.subtract(loyaltyDiscount);
 
+        Coupon coupon = null;
+
+        if(request.getCouponCode() != null &&
+                !request.getCouponCode().isBlank()) {
+
+            coupon = couponRepository
+                    .findByCode(request.getCouponCode())
+                    .orElseThrow(
+                            () -> new RuntimeException(
+                                    "Invalid Coupon"
+                            )
+                    );
+        }
+            if(!coupon.getUser()
+                    .getId()
+                    .equals(customer.getId())) {
+
+                throw new RuntimeException(
+                        "Coupon does not belong to this customer"
+                );
+            }
+
+            if(coupon.getExpiryDate()
+                    .isBefore(LocalDate.now())) {
+
+                throw new RuntimeException(
+                        "Coupon expired"
+                );
+            }
+
+            if(!coupon.getActive()) {
+
+                throw new RuntimeException(
+                        "Coupon already used"
+                );
+            }
+
+
+
+        BigDecimal coupondiscount =
+                total.multiply(
+                                BigDecimal.valueOf(
+                                        coupon.getDiscountPercentage()
+                                )
+                        )
+                        .divide(BigDecimal.valueOf(100));
+
+        total = total.subtract(coupondiscount);
+
         customer.setLoyaltyPoints(
                 availablePoints - redeemPoints
         );
@@ -197,6 +246,7 @@ public class BillingService {
                 .customer(customer)
                 .earnedPoints(earnedPoints)
                 .paymentStatus(PaymentStatus.PENDING)
+                .coupon(coupon)
                 .build();
 
         bill.setItems(billItems);

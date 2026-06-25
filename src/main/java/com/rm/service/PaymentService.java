@@ -6,12 +6,10 @@ import com.rm.dto.PaymentOrderResponse;
 import com.rm.dto.PaymentRequest;
 import com.rm.dto.PaymentResponse;
 import com.rm.dto.VerifyPaymentRequest;
-import com.rm.entity.Bill;
-import com.rm.entity.Payment;
-import com.rm.entity.PaymentStatus;
-import com.rm.entity.Product;
+import com.rm.entity.*;
 import com.rm.event.PaymentSuccessfulEvent;
 import com.rm.repository.BillRepository;
+import com.rm.repository.CouponRepository;
 import com.rm.repository.PaymentRepository;
 import com.rm.repository.ProductRepository;
 import jakarta.transaction.Transactional;
@@ -30,6 +28,7 @@ public class PaymentService {
     private final BillRepository billRepository;
     private final PaymentRepository paymentRepository;
     private final ProductRepository productRepository;
+    private final CouponRepository couponRepository;
 
 
     private final RazorpayClient razorpayClient;
@@ -179,6 +178,14 @@ public class PaymentService {
                 request.getRazorpaySignature()
         );
 
+        if(bill.getCoupon() != null) {
+
+            Coupon coupon = bill.getCoupon();
+
+            coupon.setActive(false);
+
+            couponRepository.save(coupon);
+        }
         billRepository.save(bill);
 
         eventPublisher.publishEvent(
