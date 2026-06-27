@@ -5,5 +5,6 @@ public enum InventoryTransactionType {
     SALE,
     RESTOCK,
     REFUND,
-    ADJUSTMENT
+    ADJUSTMENT,
+    RETURN
 }
