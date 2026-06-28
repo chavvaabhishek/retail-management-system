@@ -40,3 +40,10 @@ eureka:
 razorpay:
   key-id: rzp_test_T58HGFXCgmQyz8
   key-secret: xCH76XyeJzJDOGG4zu4DiEle
+
+springdoc:
+  api-docs:
+    path: /api-docs
+
+  swagger-ui:
+    path: /swagger-ui.html

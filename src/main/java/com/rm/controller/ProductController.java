@@ -5,6 +5,8 @@ import com.rm.dto.RestockRequest;
 import com.rm.dto.UpdatePriceRequest;
 import com.rm.entity.Product;
 import com.rm.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
+@Tag(
+        name = "Product APIs",
+        description = "Operations related to products"
+)
 public class ProductController {
 
     private final ProductService productService;
@@ -22,6 +28,10 @@ public class ProductController {
     // ADMIN ONLY
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
+    @Operation(
+            summary = "Create Product",
+            description = "Creates a new product"
+    )
     public Product createProduct(
             @RequestBody ProductRequest request
     ) {
