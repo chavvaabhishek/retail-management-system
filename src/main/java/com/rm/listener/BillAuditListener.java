@@ -29,10 +29,10 @@ public class BillAuditListener {
         AuditLog log =
                 AuditLog.builder()
                         .action("BILL_CREATED")
-                        .performedBy(
+                        .username(
                                 bill.getCreatedBy()
                         )
-                        .details(
+                        .description(
                                 "Invoice : "
                                         + bill.getInvoiceNumber()
                         )

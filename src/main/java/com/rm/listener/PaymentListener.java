@@ -2,6 +2,7 @@ package com.rm.listener;
 
 import com.rm.entity.Bill;
 import com.rm.event.PaymentSuccessfulEvent;
+import com.rm.service.AuditService;
 import com.rm.service.EmailService;
 import com.rm.service.PdfService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ public class PaymentListener {
     private final PdfService pdfService;
 
     private final EmailService emailService;
+    private final AuditService auditService;
 
     @Async
     @EventListener
@@ -43,6 +45,14 @@ public class PaymentListener {
                 "Thank you for shopping",
                 pdf,
                 "invoice.pdf"
+        );
+        auditService.log(
+                bill.getCreatedBy(),
+                "PAYMENT_SUCCESS",
+                "Bill",
+                bill.getId(),
+                "Payment completed for invoice "
+                        + bill.getInvoiceNumber()
         );
     }
 }

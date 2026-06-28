@@ -29,8 +29,8 @@ public class SalaryAuditListener {
         AuditLog log =
                 AuditLog.builder()
                         .action("SALARY_PAID")
-                        .performedBy("ADMIN")
-                        .details(
+                        .username("ADMIN")
+                        .description(
                                 payment.getEmployee()
                                         .getUser()
                                         .getEmail()

@@ -19,6 +19,7 @@ public class ReturnService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final InventoryTransactionRepository inventoryTransactionRepository;
+    private final AuditService auditService;
 
     public String createReturnRequest(
             ReturnRequestDto request,
@@ -175,6 +176,14 @@ public class ReturnService {
 
         returnRequestRepository.save(
                 returnRequest
+        );
+
+        auditService.log(
+                "ADMIN",
+                "RETURN_APPROVED",
+                "ReturnRequest",
+                returnRequest.getId(),
+                "Refund approved"
         );
         return "Refund approved";
     }

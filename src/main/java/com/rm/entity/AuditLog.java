@@ -18,11 +18,16 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String username;
+
     private String action;
 
-    private String performedBy;
+    private String entityName;
 
-    private String details;
+    private Long entityId;
+
+    @Column(length = 1000)
+    private String description;
 
     private LocalDateTime createdAt;
 }

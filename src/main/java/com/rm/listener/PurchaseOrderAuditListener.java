@@ -25,8 +25,8 @@ public class PurchaseOrderAuditListener {
         AuditLog log =
                 AuditLog.builder()
                         .action("PURCHASE_ORDER_RECEIVED")
-                        .performedBy("ADMIN")
-                        .details(
+                       .username("ADMIN")
+                        .description(
                                 event.getPurchaseOrder()
                                         .getPoNumber()
                         )

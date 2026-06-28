@@ -31,6 +31,8 @@ public class AuthService {
 
     private final CustomUserDetailsService userDetailsService;
 
+    private final AuditService auditService;
+
     public String register(RegisterRequest request) {
 
         if(userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -73,6 +75,14 @@ public class AuthService {
 
         String token =
                 jwtService.generateToken(userDetails);
+
+        auditService.log(
+                user.getEmail(),
+                "LOGIN",
+                "User",
+                user.getId(),
+                "User logged in"
+        );
 
         return AuthResponse.builder()
                 .token(token)

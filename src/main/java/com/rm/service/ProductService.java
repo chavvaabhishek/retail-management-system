@@ -6,6 +6,7 @@ import com.rm.repository.InventoryTransactionRepository;
 import com.rm.repository.ProductRepository;
 import com.rm.repository.PurchaseOrderRepository;
 import com.rm.repository.SupplierRepository;
+import com.rm.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
@@ -31,6 +32,8 @@ public class ProductService {
     private final PurchaseOrderRepository purchaseOrderRepository;
 
     private final FileStorageService fileStorageService;
+
+    private final AuditService auditService;
     // CREATE PRODUCT
     public Product createProduct(ProductRequest request) {
 
@@ -63,7 +66,18 @@ public class ProductService {
                 .supplier(supplier)
                 .build();
 
-        return productRepository.save(product);
+        Product savedProduct =
+                productRepository.save(product);
+
+
+        auditService.log(
+                SecurityUtil.getCurrentUsername(),
+                "CREATE_PRODUCT",
+                "Product",
+                savedProduct.getId(),
+                "Created product " + product.getName()
+        );
+        return savedProduct;
     }
 
     // GET ALL PRODUCTS
@@ -167,7 +181,16 @@ public class ProductService {
                 transaction
         );
 
-        return productRepository.save(product);
+        Product restockedproduct=productRepository.save(product);
+
+        auditService.log(
+                SecurityUtil.getCurrentUsername(),
+                "restockByBarcode",
+                "Product",
+                product.getId(),
+                "Updated product " + product.getName()
+        );
+        return restockedproduct;
     }
 
     public List<InventoryTransaction>
