@@ -178,8 +178,8 @@ public class BillingService {
                                     "Invalid Coupon"
                             )
                     );
-        }
-            if(!coupon.getUser()
+
+            if (!coupon.getUser()
                     .getId()
                     .equals(customer.getId())) {
 
@@ -188,7 +188,7 @@ public class BillingService {
                 );
             }
 
-            if(coupon.getExpiryDate()
+            if (coupon.getExpiryDate()
                     .isBefore(LocalDate.now())) {
 
                 throw new RuntimeException(
@@ -196,7 +196,7 @@ public class BillingService {
                 );
             }
 
-            if(!coupon.getActive()) {
+            if (!coupon.getActive()) {
 
                 throw new RuntimeException(
                         "Coupon already used"
@@ -204,16 +204,16 @@ public class BillingService {
             }
 
 
+            BigDecimal coupondiscount =
+                    total.multiply(
+                                    BigDecimal.valueOf(
+                                            coupon.getDiscountPercentage()
+                                    )
+                            )
+                            .divide(BigDecimal.valueOf(100));
 
-        BigDecimal coupondiscount =
-                total.multiply(
-                                BigDecimal.valueOf(
-                                        coupon.getDiscountPercentage()
-                                )
-                        )
-                        .divide(BigDecimal.valueOf(100));
-
-        total = total.subtract(coupondiscount);
+            total = total.subtract(coupondiscount);
+        }
 
         customer.setLoyaltyPoints(
                 availablePoints - redeemPoints

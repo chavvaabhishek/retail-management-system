@@ -1,9 +1,11 @@
 package com.rm.listener;
 
 import com.rm.entity.Bill;
+import com.rm.entity.NotificationType;
 import com.rm.event.PaymentSuccessfulEvent;
 import com.rm.service.AuditService;
 import com.rm.service.EmailService;
+import com.rm.service.NotificationService;
 import com.rm.service.PdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,8 @@ public class PaymentListener {
 
     private final EmailService emailService;
     private final AuditService auditService;
+
+    private final NotificationService notificationService;
 
     @Async
     @EventListener
@@ -53,6 +57,18 @@ public class PaymentListener {
                 bill.getId(),
                 "Payment completed for invoice "
                         + bill.getInvoiceNumber()
+        );
+
+        notificationService.createNotification(
+
+                bill.getCustomer(),
+
+                "Payment Successful",
+
+                "Payment received for Invoice "
+                        + bill.getInvoiceNumber(),
+
+                NotificationType.PAYMENT
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.rm.repository;
 
+import com.rm.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,4 +38,6 @@ AND DAY(u.dateOfBirth) = :day
             @Param("month") int month,
             @Param("day") int day
     );
+
+    List<User> findByRole(Role role);
 }

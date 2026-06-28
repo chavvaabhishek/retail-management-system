@@ -20,6 +20,7 @@ public class ReturnService {
     private final ProductRepository productRepository;
     private final InventoryTransactionRepository inventoryTransactionRepository;
     private final AuditService auditService;
+    private final NotificationService notificationService;
 
     public String createReturnRequest(
             ReturnRequestDto request,
@@ -184,6 +185,18 @@ public class ReturnService {
                 "ReturnRequest",
                 returnRequest.getId(),
                 "Refund approved"
+        );
+
+        notificationService.createNotification(
+
+                bill.getCustomer(),
+
+                "Refund Processed",
+
+                "Refund completed for Invoice "
+                        + bill.getInvoiceNumber(),
+
+                NotificationType.REFUND
         );
         return "Refund approved";
     }
