@@ -6,6 +6,7 @@ import com.rm.dto.PaymentOrderResponse;
 import com.rm.dto.PaymentRequest;
 import com.rm.dto.PaymentResponse;
 import com.rm.dto.VerifyPaymentRequest;
+import com.rm.dto.event.PaymentEvent;
 import com.rm.entity.*;
 import com.rm.event.PaymentSuccessfulEvent;
 import com.rm.repository.BillRepository;
@@ -34,6 +35,8 @@ public class PaymentService {
     private final RazorpayClient razorpayClient;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final KafkaProducerService kafkaProducerService;
 
 
     public PaymentResponse makePayment(
@@ -188,9 +191,24 @@ public class PaymentService {
         }
         billRepository.save(bill);
 
-        eventPublisher.publishEvent(
-                new PaymentSuccessfulEvent(bill)
-        );
+//        eventPublisher.publishEvent(
+//                new PaymentSuccessfulEvent(bill)
+//        );
+        PaymentEvent event =
+                PaymentEvent.builder()
+                        .billId(bill.getId())
+                        .invoiceNumber(
+                                bill.getInvoiceNumber()
+                        )
+                        .amount(
+                                bill.getTotalAmount()
+                        )
+                        .customerEmail(
+                                bill.getCustomer().getEmail()
+                        )
+                        .build();
+
+        kafkaProducerService.publishPayment(event);
     }
 
 
