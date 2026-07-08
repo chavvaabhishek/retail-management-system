@@ -1,5 +1,6 @@
 package com.rm.listener;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rm.dto.event.PaymentEvent;
 import com.rm.service.FailedEventService;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,11 @@ public class DeadLetterConsumer {
     )
     public void consumeDeadLetter(
             PaymentEvent event
-    ) {
+    ) throws JsonProcessingException {
 
         failedEventService.saveFailedEvent(
 
-                event.getInvoiceNumber(),
+                event,
 
                 "payment-events",
 

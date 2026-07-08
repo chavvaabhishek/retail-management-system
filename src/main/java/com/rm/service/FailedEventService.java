@@ -1,11 +1,17 @@
 package com.rm.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rm.dto.FailedEventResponse;
 import com.rm.dto.RetryHistoryResponse;
+import com.rm.dto.event.PaymentEvent;
 import com.rm.entity.FailedEvent;
 import com.rm.entity.FailedEventStatus;
+import com.rm.entity.RetryHistory;
 import com.rm.repository.FailedEventRepository;
 import com.rm.repository.RetryHistoryRepository;
+import com.rm.util.SecurityUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +30,11 @@ public class FailedEventService {
 
     private final FailedEventRepository failedEventRepository;
 
+    private final ObjectMapper objectMapper;
+
     public void saveFailedEvent(
 
-            String invoiceNumber,
+            PaymentEvent paymentEvent,
 
             String topic,
 
@@ -34,8 +42,10 @@ public class FailedEventService {
 
             Integer retryCount
 
-    ) {
+    ) throws JsonProcessingException {
 
+        String payload =
+                objectMapper.writeValueAsString(paymentEvent);
         FailedEvent event =
                 FailedEvent.builder()
 
@@ -43,7 +53,7 @@ public class FailedEventService {
                                 UUID.randomUUID().toString()
                         )
 
-                        .invoiceNumber(invoiceNumber)
+                        .invoiceNumber(paymentEvent.getInvoiceNumber())
 
                         .topic(topic)
 
@@ -61,6 +71,7 @@ public class FailedEventService {
 
                         .status(FailedEventStatus.PENDING)
 
+                        .payload(payload)
                         .build();
 
         repository.save(event);
@@ -138,4 +149,83 @@ public class FailedEventService {
 
     }
 
+    @Transactional
+    public void retryEvent(
+            Long failedEventId
+    ) throws Exception {
+
+        FailedEvent failedEvent =
+
+                failedEventRepository.findById(
+
+                        failedEventId
+
+                ).orElseThrow();
+
+        failedEvent.setStatus(
+                FailedEventStatus.RETRYING
+        );
+
+        failedEventRepository.save(
+                failedEvent
+        );
+
+// Save Retry History
+        RetryHistory history =
+                RetryHistory.builder()
+                        .failedEvent(failedEvent)
+                        .retryTime(LocalDateTime.now())
+                        .status(FailedEventStatus.RETRYING)
+                        .message("Manual Retry Started")
+                        .processedBy(SecurityUtil.getCurrentUsername())
+                        .build();
+
+        retryHistoryRepository.save(history);
+
+   PaymentEvent paymentEvent =
+
+                objectMapper.readValue(
+
+                        failedEvent.getPayload(),
+
+                        PaymentEvent.class
+
+                );
+
+       kafkaProducerService.publishPayment(
+                paymentEvent
+        );
+
+    }
+    public void markResolved(
+
+            String invoiceNumber
+
+    ) {
+
+        FailedEvent failedEvent =
+
+                repository
+
+                        .findByInvoiceNumber(
+                                invoiceNumber
+                        )
+
+                        .orElse(null);
+
+        if(failedEvent == null) {
+
+            return;
+
+        }
+
+        failedEvent.setStatus(
+                FailedEventStatus.RESOLVED
+        );
+
+        repository.save(
+                failedEvent
+        );
+
+    }
 }

@@ -4,6 +4,7 @@ import com.rm.dto.event.PaymentEvent;
 import com.rm.entity.Bill;
 import com.rm.repository.BillRepository;
 import com.rm.service.EmailService;
+import com.rm.service.FailedEventService;
 import com.rm.service.PdfService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,6 +19,7 @@ public class EmailConsumer {
     private final BillRepository billRepository;
     private final PdfService pdfService;
     private final EmailService emailService;
+    private final FailedEventService failedEventService;
 
     @RetryableTopic(
 
@@ -57,6 +59,9 @@ public class EmailConsumer {
         System.out.println(
                 "Email Sent : "
                         + bill.getInvoiceNumber()
+        );
+        failedEventService.markResolved(
+                event.getInvoiceNumber()
         );
     }
 

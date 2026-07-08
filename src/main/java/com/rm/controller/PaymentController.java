@@ -5,9 +5,11 @@ import com.rm.dto.PaymentRequest;
 import com.rm.dto.PaymentResponse;
 import com.rm.dto.VerifyPaymentRequest;
 import com.rm.dto.event.PaymentEvent;
+import com.rm.service.FailedEventService;
 import com.rm.service.KafkaProducerService;
 import com.rm.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,6 +20,7 @@ import java.math.BigDecimal;
 public class PaymentController {
     private final PaymentService paymentService;
     private final KafkaProducerService kafkaProducerService;
+    private final FailedEventService failedEventService;
 
     @PostMapping
     public PaymentResponse pay(
@@ -63,5 +66,22 @@ public class PaymentController {
         );
 
         return "Message Sent";
+    }
+
+    @PostMapping("/{id}/retry")
+    public ResponseEntity<String> retry(
+
+            @PathVariable Long id
+
+    ) throws Exception {
+
+        failedEventService.retryEvent(id);
+
+        return ResponseEntity.ok(
+
+                "Retry initiated."
+
+        );
+
     }
 }
