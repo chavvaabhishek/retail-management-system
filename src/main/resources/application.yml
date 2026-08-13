@@ -1,14 +1,15 @@
 spring:
+
   application:
     name: user-service
 
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:${CONFIG_SERVER_URL:http://config-server:8888}
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/retail_user_db?TimeZone=UTC
-    username: admin
-    password: admin
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/retail_user_db?TimeZone=UTC}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -19,24 +20,20 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: chavvaabhishek20@gmail.com
-    password: csxvonlmyjgoxnhw
-
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
-          starttls:
-            enable: true
+        starttls:
+          enable: true
 
   kafka:
-
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
 
     consumer:
-
       group-id: retail-group
-
       auto-offset-reset: earliest
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -44,30 +41,36 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
       properties:
-
         spring.json.trusted.packages: "*"
 
     producer:
-
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
 
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
     admin:
-
       auto-create: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
 
 server:
   port: 8081
 
+
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
+
 
 razorpay:
-  key-id: rzp_test_T58HGFXCgmQyz8
-  key-secret: xCH76XyeJzJDOGG4zu4DiEle
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_T58HGFXCgmQyz8}
+  key-secret: ${RAZORPAY_KEY_SECRET:xCH76XyeJzJDOGG4zu4DiEle}
+
 
 springdoc:
   api-docs:
