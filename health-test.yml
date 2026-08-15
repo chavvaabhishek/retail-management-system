@@ -1,0 +1,26 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: health-postgres
+
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: testdb
+
+    ports:
+      - "5434:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d testdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test-app:
+    image: busybox
+    container_name: health-test-app
+    depends_on:
+      - postgres
+    command: ["sh", "-c", "echo App started; sleep 3600"]
