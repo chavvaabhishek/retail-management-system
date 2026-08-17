@@ -13,7 +13,13 @@ FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
+RUN useradd -m appuser
+
 COPY --from=build /app/user-service/target/*.jar app.jar
+
+RUN chown appuser:appuser app.jar
+
+USER appuser
 
 EXPOSE 8081
 

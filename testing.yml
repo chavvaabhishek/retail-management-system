@@ -3,7 +3,13 @@ services:
   postgres:
     image: postgres:15
     container_name: postgres-db
-    restart: always
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -27,7 +33,13 @@ services:
   redis:
     image: redis:7
     container_name: redis-server
-    restart: always
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     ports:
       - "6379:6379"
@@ -44,7 +56,12 @@ services:
   kafka:
     image: apache/kafka:latest
     container_name: kafka
-    restart: always
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     ports:
       - "9092:9092"
@@ -79,7 +96,13 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
-    restart: always
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     ports:
       - "8085:8080"
@@ -95,7 +118,18 @@ services:
   user-service:
     image: retail-user-service:1.0
     container_name: retail-user-service
-    restart: always
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - ../uploads:/app/uploads
 
     ports:
       - "8080:8081"
@@ -120,9 +154,50 @@ services:
       postgres:
         condition: service_healthy
       redis:
-          condition: service_healthy
+        condition: service_healthy
       kafka:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
+      config-server:
+        condition: service_started
+
+  eureka-server:
+    image: retail-eureka-server:1.0
+    container_name: eureka-server
+    restart: unless-stopped
+
+    ports:
+      - "8761:8761"
+
+  config-server:
+    image: retail-config-server:1.0
+    container_name: config-server
+    restart: unless-stopped
+
+    ports:
+      - "8888:8888"
+
+    volumes:
+      - ../rm-project:/config:ro
+
+    depends_on:
+      - eureka-server
+
+  api-gateway:
+    image: retail-api-gateway:1.0
+    container_name: api-gateway
+    restart: unless-stopped
+
+    ports:
+      - "9090:9090"
+
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+
+    depends_on:
+      - eureka-server
+      - user-service
 
 
 
