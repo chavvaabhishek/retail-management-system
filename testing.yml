@@ -199,6 +199,20 @@ services:
       - eureka-server
       - user-service
 
+  inventory-service:
+    image: retail-inventory-service:1.0
+    container_name: inventory-service
+    restart: unless-stopped
+
+    ports:
+      - "8082:8082"
+
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+
+    depends_on:
+      - eureka-server
+
 
 
 
