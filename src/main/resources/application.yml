@@ -78,3 +78,25 @@ springdoc:
 
   swagger-ui:
     path: /swagger-ui.html
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventoryService:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
+  bulkhead:
+    instances:
+      inventoryService:
+        max-concurrent-calls: 10
+        max-wait-duration: 0ms
+  ratelimiter:
+    instances:
+      inventoryService:
+        limit-for-period: 20
+        limit-refresh-period: 1s
+        timeout-duration: 0ms
