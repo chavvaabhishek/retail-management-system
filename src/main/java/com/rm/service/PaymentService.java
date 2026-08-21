@@ -1,5 +1,7 @@
 package com.rm.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.rm.dto.PaymentOrderResponse;
@@ -9,10 +11,7 @@ import com.rm.dto.VerifyPaymentRequest;
 import com.rm.dto.event.PaymentEvent;
 import com.rm.entity.*;
 import com.rm.event.PaymentSuccessfulEvent;
-import com.rm.repository.BillRepository;
-import com.rm.repository.CouponRepository;
-import com.rm.repository.PaymentRepository;
-import com.rm.repository.ProductRepository;
+import com.rm.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
@@ -32,12 +31,14 @@ public class PaymentService {
     private final CouponRepository couponRepository;
 
 
+    private final OutboxEventRepository outboxEventRepository;
     private final RazorpayClient razorpayClient;
 
     private final ApplicationEventPublisher eventPublisher;
 
     private final KafkaProducerService kafkaProducerService;
 
+    private final ObjectMapper objectMapper;
 
     public PaymentResponse makePayment(
             PaymentRequest request
@@ -156,9 +157,10 @@ public class PaymentService {
                 .build();
     }
 
+    @Transactional
     public void verifyPayment(
             VerifyPaymentRequest request
-    ) {
+    ) throws JsonProcessingException {
 
         Bill bill =
                 billRepository.findById(
@@ -196,6 +198,7 @@ public class PaymentService {
 //        );
         PaymentEvent event =
                 PaymentEvent.builder()
+                        .eventId(UUID.randomUUID().toString())
                         .billId(bill.getId())
                         .invoiceNumber(
                                 bill.getInvoiceNumber()
@@ -208,6 +211,18 @@ public class PaymentService {
                         )
                         .build();
 
+        String payload =
+                objectMapper.writeValueAsString(event);
+        OutboxEvent outboxEvent =
+                OutboxEvent.builder()
+                        .eventId(event.getEventId())
+                        .eventType("PAYMENT_SUCCESS")
+                        .payload(payload)
+                        .published(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+
+        outboxEventRepository.save(outboxEvent);
         kafkaProducerService.publishPayment(event);
     }
 

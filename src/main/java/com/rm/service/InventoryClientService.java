@@ -1,5 +1,6 @@
 package com.rm.service;
 
+import com.rm.client.InventoryClient;
 import com.rm.dto.InventoryResponse;
 import com.rm.exception.InventoryServiceUnavailableException;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
@@ -18,6 +19,8 @@ public class InventoryClientService {
 
     private final RestTemplate restTemplate;
 
+    private final InventoryClient inventoryClient;
+
 //    @Retryable(
 //            retryFor = InventoryServiceUnavailableException.class,
 //            maxAttempts = 3,
@@ -34,17 +37,32 @@ public class InventoryClientService {
 //    )
     public InventoryResponse getInventory(Long productId) {
 
+//        try {
+//
+//            System.out.println("Calling Inventory Service...");
+//
+//            return restTemplate.getForObject(
+//                    "http://INVENTORY-SERVICE/inventory/{productId}",
+//                    InventoryResponse.class,
+//                    productId
+//            );
+//
+//        } catch (RestClientException | IllegalArgumentException e) {
+//
+//            throw new InventoryServiceUnavailableException(
+//                    "Inventory service is currently unavailable",
+//                    e
+//            );
+//        }
         try {
 
-            System.out.println("Calling Inventory Service...");
-
-            return restTemplate.getForObject(
-                    "http://INVENTORY-SERVICE/inventory/{productId}",
-                    InventoryResponse.class,
-                    productId
+            System.out.println(
+                    "Calling Inventory Service using Feign..."
             );
 
-        } catch (RestClientException | IllegalArgumentException e) {
+            return inventoryClient.getInventory(productId);
+
+        } catch (Exception e) {
 
             throw new InventoryServiceUnavailableException(
                     "Inventory service is currently unavailable",

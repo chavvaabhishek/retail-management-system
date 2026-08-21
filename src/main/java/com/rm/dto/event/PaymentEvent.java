@@ -18,4 +18,6 @@ public class PaymentEvent {
     private BigDecimal amount;
 
     private String customerEmail;
+
+    private String eventId;
 }
